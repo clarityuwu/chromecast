@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chromecast Receiver</title>
+  <script type="text/javascript" src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+</head>
+<body>
+  <video id="videoElement" style="width: 100%; height: 100%;"></video>
+
+  <script type="text/javascript">
+    const context = cast.framework.CastReceiverContext.getInstance();
+    const playerManager = context.getPlayerManager();
+
+    const mediaElement = document.getElementById('videoElement');
+    playerManager.setMediaElement(mediaElement);
+    playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (loadRequestData) => {
+      if (loadRequestData.media && loadRequestData.media.contentUrl) {
+        const mediaInfo = new cast.framework.messages.MediaInformation();
+        mediaInfo.contentUrl = loadRequestData.media.contentUrl;
+        mediaInfo.contentType = 'video/mp4'; // Assuming the video is in MP4 format
+
+        const loadOptions = new cast.framework.messages.LoadOptions();
+        loadOptions.autoplay = true;
+
+        return playerManager.load(mediaInfo, loadOptions);
+      }
+    });
+    context.start();
+  </script>
+</body>
+</html>

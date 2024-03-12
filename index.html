@@ -6,25 +6,37 @@
 </head>
 <body>
   <video id="videoElement" style="width: 100%; height: 100%;"></video>
-
   <script type="text/javascript">
     const context = cast.framework.CastReceiverContext.getInstance();
     const playerManager = context.getPlayerManager();
-
     const mediaElement = document.getElementById('videoElement');
     playerManager.setMediaElement(mediaElement);
-    playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (loadRequestData) => {
-      if (loadRequestData.media && loadRequestData.media.contentUrl) {
-        const mediaInfo = new cast.framework.messages.MediaInformation();
-        mediaInfo.contentUrl = loadRequestData.media.contentUrl;
-        mediaInfo.contentType = 'video/mp4'; // Assuming the video is in MP4 format
 
-        const loadOptions = new cast.framework.messages.LoadOptions();
-        loadOptions.autoplay = true;
+    playerManager.addEventListener(cast.framework.events.EventType.LOAD, (event) => {
+      const mediaInfo = event.data;
+      const mediaUrl = mediaInfo.contentUrl;
+      const mediaType = mediaInfo.contentType;
 
-        return playerManager.load(mediaInfo, loadOptions);
+      const loadOptions = new cast.framework.messages.LoadOptions();
+      loadOptions.autoplay = true;
+
+      playerManager.load(mediaInfo, loadOptions)
+        .then(() => {
+          console.log('Media loaded successfully');
+        })
+        .catch((error) => {
+          console.error('Failed to load media:', error);
+        });
+    });
+
+    playerManager.addEventListener(cast.framework.events.EventType.MEDIA_STATUS, (event) => {
+      const mediaStatus = event.mediaStatus;
+      if (mediaStatus && mediaStatus.playerState === cast.framework.messages.PlayerState.IDLE && mediaStatus.idleReason === cast.framework.messages.IdleReason.FINISHED) {
+        // Media playback finished, you can handle any post-playback actions here
+        console.log('Media playback finished');
       }
     });
+
     context.start();
   </script>
 </body>
